@@ -34,18 +34,16 @@ client = OpenAI(
 )
 
 # ------------------------------------------------------------------
-# SYSTEM PROMPT
+# USER CAPTION PROMPT (no system prompt — let the model hear freely)
 # ------------------------------------------------------------------
-SYSTEM_PROMPT = """\
-You are an expert audio scene analyst for Project JARMS — a 24/7 emergency
-monitoring service for elderly residents living alone in Singapore HDB rental flats.
-
-Describe in plain English what is happening in the audio, as if you are a paramedic
-listening for the first time. Focus on the physical and emotional state of the speaker.
-
-Return ONLY a valid JSON object with the following keys:
-caption (string), confidence (float 0.0-1.0), notable_events (list of strings)
-"""
+CAPTION_PROMPT = (
+    "Listen to this audio and caption what is happening. "
+    "Focus on: who is speaking, their emotional and physical state, "
+    "any notable sounds (breathing, falls, alarms, background noise), "
+    "and the overall urgency of the situation. "
+    "Return ONLY a valid JSON object with keys: "
+    "caption (string), confidence (float 0.0-1.0), notable_events (list of strings)."
+)
 
 # ------------------------------------------------------------------
 # CORE FUNCTION
@@ -53,7 +51,7 @@ caption (string), confidence (float 0.0-1.0), notable_events (list of strings)
 
 
 def run(audio_path: str) -> dict:
-    """Generate audio scene caption using qwen3-omni-flash."""
+    """Generate audio scene caption using qwen3-omni-flash (no system prompt)."""
     print(f"[captioner] Loading audio: {audio_path}")
     with open(audio_path, "rb") as f:
         audio_bytes = f.read()
@@ -66,7 +64,6 @@ def run(audio_path: str) -> dict:
         response = client.chat.completions.create(
             model=CAPTION_MODEL,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
                 {
                     "role": "user",
                     "content": [
@@ -74,12 +71,9 @@ def run(audio_path: str) -> dict:
                             "type": "input_audio",
                             "input_audio": {"data": audio_data_uri},
                         },
-                        {
-                            "type": "text",
-                            "text": "Describe the audio scene and return your findings as JSON.",
-                        },
+                        {"type": "text", "text": CAPTION_PROMPT},
                     ],
-                },
+                }
             ],
             extra_body={"enable_thinking": False},
             temperature=0.3,
