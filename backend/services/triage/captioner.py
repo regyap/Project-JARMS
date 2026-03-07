@@ -27,8 +27,6 @@ DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
 AUDIO_FILE = os.getenv("AUDIO_FILE", "interviewcoolies.mp3")
 
 CAPTION_MODEL = "qwen3-omni-flash"
-CAPTION_MODEL = "qwen3-omni-30b-a3b-captioner"
-
 
 client = OpenAI(
     api_key=DASHSCOPE_API_KEY,
@@ -46,7 +44,8 @@ Describe in plain English what is happening in the audio, as if you are a parame
 listening for the first time. Focus on the physical and emotional state of the speaker.
 
 Return ONLY a valid JSON object with the following keys:
-caption (string), confidence (float 0.0-1.0), notable_events (list of strings)
+- caption: string — a concise plain-English description of the audio scene
+- notable_events: list of strings — specific events worth flagging (e.g. "fall impact heard", "caller is crying")
 """
 
 # ------------------------------------------------------------------
@@ -92,13 +91,13 @@ def run(audio_path: str) -> dict:
         json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
         if json_match:
             return json.loads(json_match.group(0))
-        return {"caption": raw_text, "confidence": 0.5, "notable_events": []}
+
+        return {"caption": raw_text, "notable_events": []}
 
     except Exception as e:
         print(f"[captioner] Error: {e}")
         return {
             "caption": f"Analysis failed: {e}",
-            "confidence": 0.0,
             "notable_events": [],
         }
 

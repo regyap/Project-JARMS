@@ -34,16 +34,19 @@ client = OpenAI(
 )
 
 # ------------------------------------------------------------------
-# USER CAPTION PROMPT (no system prompt — let the model hear freely)
+# SYSTEM PROMPT
 # ------------------------------------------------------------------
-CAPTION_PROMPT = (
-    "Listen to this audio and caption what is happening. "
-    "Focus on: who is speaking, their emotional and physical state, "
-    "any notable sounds (breathing, falls, alarms, background noise), "
-    "and the overall urgency of the situation. "
-    "Return ONLY a valid JSON object with keys: "
-    "caption (string), confidence (float 0.0-1.0), notable_events (list of strings)."
-)
+SYSTEM_PROMPT = """\
+You are an expert audio scene analyst for Project JARMS — a 24/7 emergency
+monitoring service for elderly residents living alone in Singapore HDB rental flats.
+
+Describe in plain English what is happening in the audio, as if you are a paramedic
+listening for the first time. Focus on the physical and emotional state of the speaker.
+
+Return ONLY a valid JSON object with the following keys:
+- caption: string — a concise plain-English description of the audio scene
+- notable_events: list of strings — specific events worth flagging (e.g. "fall impact heard", "caller is crying")
+"""
 
 # ------------------------------------------------------------------
 # CORE FUNCTION
@@ -51,7 +54,7 @@ CAPTION_PROMPT = (
 
 
 def run(audio_path: str) -> dict:
-    """Generate audio scene caption using qwen3-omni-flash (no system prompt)."""
+    """Generate audio scene caption using qwen3-omni-flash."""
     print(f"[captioner] Loading audio: {audio_path}")
     with open(audio_path, "rb") as f:
         audio_bytes = f.read()
@@ -64,6 +67,7 @@ def run(audio_path: str) -> dict:
         response = client.chat.completions.create(
             model=CAPTION_MODEL,
             messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
                 {
                     "role": "user",
                     "content": [
@@ -71,26 +75,29 @@ def run(audio_path: str) -> dict:
                             "type": "input_audio",
                             "input_audio": {"data": audio_data_uri},
                         },
-                        {"type": "text", "text": CAPTION_PROMPT},
+                        {
+                            "type": "text",
+                            "text": "Describe the audio scene and return your findings as JSON.",
+                        },
                     ],
-                }
+                },
             ],
             extra_body={"enable_thinking": False},
             temperature=0.3,
         )
         raw_text = response.choices[0].message.content
-        print(f"[captioner] Raw output: {raw_text[:1000]}...")
+        print(f"[captioner] Raw output: {raw_text[:200]}...")
 
         json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
         if json_match:
             return json.loads(json_match.group(0))
-        return {"caption": raw_text, "confidence": 0.5, "notable_events": []}
+
+        return {"caption": raw_text, "notable_events": []}
 
     except Exception as e:
         print(f"[captioner] Error: {e}")
         return {
             "caption": f"Analysis failed: {e}",
-            "confidence": 0.0,
             "notable_events": [],
         }
 

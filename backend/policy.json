@@ -8,17 +8,17 @@
     "low_confidence_default": "escalate"
   },
   "red_flag_audio_signals": [
-  "fall_impact_sound",
-  "distress_vocalisation",
-  "gasping_or_laboured_breathing",
-  "extended_silence_after_trigger"
+    "fall_impact_sound",
+    "distress_vocalisation",
+    "gasping_or_laboured_breathing",
+    "extended_silence_after_trigger"
   ],
   "urgency_buckets": [
     "life_threatening",
     "emergency",
+    "requires_review",
     "minor_emergency",
-    "non_emergency",
-    "requires_review"
+    "non_emergency"
   ],
   "queue_order": [
     "life_threatening",
@@ -37,28 +37,34 @@
   "recommended_primary_actions_by_bucket": {
     "life_threatening": [
       "call_patient_now",
-      "recommend_call_995",
-      "call_emergency_contact_now"
+      "call_995",
+      "inform_emergency_contact"
     ],
     "emergency": [
       "call_patient_now",
-      "call_emergency_contact_now",
-      "recommend_call_995_if_no_contact_or_red_flag_worsens"
+      "inform_emergency_contact",
+      "call_995"
     ],
     "requires_review": [
       "call_patient_now",
-      "operator_review_now"
+      "inform_emergency_contact"
     ],
     "minor_emergency": [
       "call_patient_now",
-      "recommend_private_ambulance_1777_if_transport_needed",
-      "recommend_gp_or_polyclinic_if_stable"
+      "call_private_ambulance_1777"
     ],
     "non_emergency": [
-      "call_patient_now",
-      "recommend_gp_or_polyclinic"
+      "call_patient_now"
     ]
-    
-  }
-  
+  },
+  "allowed_actions": [
+    "call_patient_now",
+    "inform_emergency_contact",
+    "call_sgsecure_volunteers",
+    "call_995",
+    "call_private_ambulance_1777",
+    "call_ed_by_private_transport",
+    "call_999",
+    "notify_lift_lobby"
+  ]
 }

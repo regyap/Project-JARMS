@@ -1,27 +1,27 @@
-# PAB AI Triage Protocol v1
+# PAB AI Triage Protocol v2
+
 ## Project JARMS — SCDF-Aligned Emergency Response
 
-**Scope**: Elderly residents living alone in HDB rental flats.  
-**Input**: PAB-triggered audio transcript (from STT) only.  
-**Mode**: 24/7 operation. AI recommends to human operator. Human decides.  
-**Low-confidence default**: ESCALATE — never downgrade when uncertain.
+**Scope**: Elderly residents living alone in HDB rental flats.
+**Input**: PAB-triggered audio transcript (from STT), paralinguistic evaluation, audio caption, and beneficiary context.
+**Mode**: 24/7 operation. AI recommends to human operator. Human decides.
+**Low-uncertainty default**: ESCALATE — never downgrade when uncertain.
 
 ---
 
 ## 1. Urgency Buckets
 
-Six urgency buckets in priority order (highest to lowest):
+Five urgency buckets in queue priority order (highest to lowest):
 
-| Bucket | Description | Max Wait |
-|---|---|---|
-| `life_threatening` | Imminent risk of death — act immediately | 0 seconds |
-| `emergency` | Serious condition — act within 1 minute | 60 seconds |
-| `unknown` | Uncertain — silence, poor audio, unreachable | 90 seconds |
-| `requires_review` | Unclear but not low-acuity — human must review | 180 seconds |
-| `minor_emergency` | Non-life-threatening but needs attention | 600 seconds |
-| `non_emergency` | Low-acuity, stable — redirect to GP/polyclinic | 1800 seconds |
+| Bucket             | Description                                            | Max Wait     |
+| ------------------ | ------------------------------------------------------ | ------------ |
+| `life_threatening` | Imminent risk of death — act immediately               | 0 seconds    |
+| `emergency`        | Serious condition — act within 1 minute                | 60 seconds   |
+| `requires_review`  | Unclear, uncertain, or unreachable — human must review | 180 seconds  |
+| `minor_emergency`  | Non-life-threatening but needs attention               | 600 seconds  |
+| `non_emergency`    | Low-acuity, stable — redirect to GP/polyclinic         | 1800 seconds |
 
-> **Queue order**: `life_threatening` → `emergency` → `unknown` → `requires_review` → `minor_emergency` → `non_emergency`
+> **Queue order**: `life_threatening` → `emergency` → `requires_review` → `minor_emergency` → `non_emergency`
 
 ---
 
@@ -55,9 +55,7 @@ The AI must evaluate the transcript and emit the following boolean flags:
   "calling_for_help_weak_voice": false,
   "multiple_voices_or_bystander_reports_collapse": false,
   "background_fall_impact_sound": false,
-  "location_unverified": false,
-  "low_confidence_ai": false,
-  "conflicting_ai_outputs": false
+  "location_unverified": false
 }
 ```
 
@@ -66,7 +64,9 @@ The AI must evaluate the transcript and emit the following boolean flags:
 ## 3. Keyword Lists (from SCDF Public Emergency Framework)
 
 ### 🔴 Life-Threatening Keywords
+
 Any of these → immediately classify as `life_threatening`:
+
 ```
 not breathing, cannot breathe, breathing difficulty, gasping, choking,
 unconscious, not responding, collapsed, seizure, fits, stroke,
@@ -76,7 +76,9 @@ fell and cannot wake, major fall, head injury, very breathless
 ```
 
 ### 🟠 Emergency Keywords
+
 Any of these → classify as `emergency` (unless already `life_threatening`):
+
 ```
 fell down, cannot get up, fracture, broken bone, head hit,
 dizzy and weak, wheezing, asthma attack, swollen tongue, allergy,
@@ -85,14 +87,18 @@ persistent fever, vomiting many times
 ```
 
 ### 🟡 Minor Emergency Keywords
+
 Any of these → classify as `minor_emergency` (unless higher flags present):
+
 ```
 small cut, bleeding little, bruise, sprain, back pain, limb pain,
 nose bleed, mild fever, diarrhoea, vomiting, headache
 ```
 
 ### 🟢 Non-Emergency Keywords
-Only if NO higher flags and AI confidence is high:
+
+Only if NO higher flags are present:
+
 ```
 constipation, chronic cough, skin rash, medical check up, minor sore eye
 ```
@@ -104,7 +110,9 @@ constipation, chronic cough, skin rash, medical check up, minor sore eye
 Apply rules in strict order. Once a bucket is assigned at a higher level, do NOT downgrade.
 
 ### Rule 1 — Life-Threatening (HARD OVERRIDE)
+
 **IF ANY of these flags are TRUE:**
+
 - `airway_compromise`, `not_breathing`, `gasping_or_agonal_breathing`
 - `severe_breathlessness`, `unresponsive_or_unconscious`
 - `active_seizure`, `stroke_keywords_present`
@@ -113,7 +121,9 @@ Apply rules in strict order. Once a bucket is assigned at a higher level, do NOT
 → **Bucket = `life_threatening`** (cannot be overridden)
 
 ### Rule 2 — Emergency
+
 **IF ANY of these flags are TRUE AND bucket is NOT already `life_threatening`:**
+
 - `head_injury_suspected`, `fall_detected_or_suspected`, `unable_to_get_up`
 - `confused_or_disoriented`, `allergic_reaction_severe`
 - `possible_asthma_exacerbation`, `severe_pain_distress`
@@ -122,29 +132,32 @@ Apply rules in strict order. Once a bucket is assigned at a higher level, do NOT
 
 → **Bucket = `emergency`**
 
-### Rule 3 — Unknown
-**IF ANY of these flags are TRUE AND bucket is NOT `life_threatening`:**
-- `silence_after_trigger`, `location_unverified`
-- `low_confidence_ai`, `conflicting_ai_outputs`
+### Rule 3 — Requires Review
 
-→ **Bucket = `unknown`** (treat as higher-risk than `minor_emergency`)
+**IF ANY of these conditions are TRUE AND bucket is NOT `life_threatening` or `emergency`:**
+
+- `silence_after_trigger`
+- `location_unverified`
+- Insufficient information to determine acuity
+- Conflicting signals between transcript and audio analysis
+
+→ **Bucket = `requires_review`** (treat as higher-risk than `minor_emergency`)
 
 ### Rule 4 — Minor Emergency
-**IF ANY of these flags are TRUE AND NONE of the life-threatening flags are TRUE:**
+
+**IF ANY of these flags are TRUE AND NONE of the life-threatening or emergency flags are TRUE:**
+
 - `vomiting_or_diarrhoea_present`, `cough_present`, `fever_or_hot_to_touch`
 
 → **Bucket = `minor_emergency`**
 
-### Rule 5 — Requires Review
-**IF there is insufficient information but no clear low-acuity features:**
+### Rule 5 — Non-Emergency
 
-→ **Bucket = `requires_review`**
-
-### Rule 6 — Non-Emergency
 **ONLY IF ALL of the following are true:**
+
 - Only low-acuity keywords present
 - No red flags of any kind
-- AI confidence is HIGH (≥ 0.7)
+- No uncertainty about the situation
 
 → **Bucket = `non_emergency`**
 
@@ -154,13 +167,13 @@ Apply rules in strict order. Once a bucket is assigned at a higher level, do NOT
 
 These promote the bucket **up one level** when the condition applies:
 
-| Patient History | Promotes when... |
-|---|---|
-| Age ≥ 65 | Any acute symptom and current bucket is below `emergency` |
-| On anticoagulants | Any fall or head injury detected |
-| Cardiac or respiratory history | Chest pain, breathlessness, or confusion present |
-| Diabetes | Confusion, weakness, or reduced responsiveness |
-| Lives alone | Unreachable OR silence after trigger |
+| Patient History                | Promotes when...                                          |
+| ------------------------------ | --------------------------------------------------------- |
+| Age ≥ 65                       | Any acute symptom and current bucket is below `emergency` |
+| On anticoagulants              | Any fall or head injury detected                          |
+| Cardiac or respiratory history | Chest pain, breathlessness, or confusion present          |
+| Diabetes                       | Confusion, weakness, or reduced responsiveness            |
+| Lives alone                    | Unreachable OR silence after trigger                      |
 
 ---
 
@@ -169,63 +182,60 @@ These promote the bucket **up one level** when the condition applies:
 These rules override ALL other logic:
 
 1. **Life-threatening flags always win** — if any life-threatening flag is TRUE, bucket = `life_threatening`. No exceptions.
-2. **Never classify as `non_emergency`** if `low_confidence_ai` OR `conflicting_ai_outputs` is TRUE.
+2. **Never classify as `non_emergency`** if there is uncertainty about the situation or conflicting signals between audio analysis and transcript.
 3. **Deterioration escalates immediately** — if a new red flag is detected at any point during assessment, re-bucket upward immediately.
-4. **Elderly alone + unreachable** → bucket must be at least `unknown`.
+4. **Elderly alone + unreachable** → bucket must be at least `requires_review`.
 
 ---
 
 ## 7. Action Recommendations by Bucket
 
 ### `life_threatening`
+
 - `call_patient_now`
-- `recommend_call_995`
-- `call_emergency_contact_now`
-- *(if available)*: `send_volunteer_helper_if_available`, `call_neighbour_or_building_contact_now`
+- `call_995`
+- `inform_emergency_contact`
+- _(if available)_: `call_sgsecure_volunteers`, `notify_lift_lobby`
 
 ### `emergency`
-- `call_patient_now`
-- `call_emergency_contact_now`
-- *If no contact or symptoms worsen*: `recommend_call_995`
-- *If transport needed but SCDF threshold not met*: `recommend_private_ambulance_1777`
 
-### `unknown`
 - `call_patient_now`
-- `call_emergency_contact_now`
-- *If unreachable and elderly alone*: `recommend_welfare_check`, `call_neighbour_or_building_contact_now`
-- *If red flag emerges*: `recommend_call_995`
+- `inform_emergency_contact`
+- _If no contact or symptoms worsen_: `call_995`
+- _If transport needed but SCDF threshold not met_: `call_private_ambulance_1777`
 
 ### `requires_review`
+
 - `call_patient_now`
-- *If stable + low-acuity confirmed*: `recommend_gp_or_polyclinic`
-- *If transport needed*: `recommend_private_ambulance_1777`
+- `inform_emergency_contact`
+- _If unreachable and elderly alone_: `notify_lift_lobby`, `call_sgsecure_volunteers`
+- _If red flag emerges_: `call_995`
 
 ### `minor_emergency`
+
 - `call_patient_now`
-- *If mobility issue or no safe transport*: `recommend_private_ambulance_1777`
-- *Otherwise*: `recommend_gp_or_polyclinic`
+- _If mobility issue or no safe transport_: `call_private_ambulance_1777`
+- _Otherwise_: `call_ed_by_private_transport`
 
 ### `non_emergency`
+
 - `call_patient_now`
-- `recommend_gp_or_polyclinic`
-- *(optional)*: `continue_monitoring_and_recontact`
+- `inform_emergency_contact`
 
 ---
 
 ## 8. Allowed Actions (Enumerated)
 
 The AI MUST only recommend from this list. No free-text actions:
+
 - `call_patient_now`
-- `call_emergency_contact_now`
-- `call_neighbour_or_building_contact_now`
-- `recommend_call_995`
-- `recommend_private_ambulance_1777`
-- `recommend_ed_by_private_transport`
-- `recommend_gp_or_polyclinic`
-- `recommend_welfare_check`
-- `recommend_police_if_forced_entry_or_safety_issue`
-- `send_volunteer_helper_if_available`
-- `continue_monitoring_and_recontact`
+- `inform_emergency_contact`
+- `call_sgsecure_volunteers`
+- `call_995`
+- `call_private_ambulance_1777`
+- `call_ed_by_private_transport`
+- `call_999`
+- `notify_lift_lobby`
 
 ---
 
@@ -235,8 +245,7 @@ The AI triage model MUST return a structured JSON object in exactly this format:
 
 ```json
 {
-  "urgency_bucket": "life_threatening | emergency | unknown | requires_review | minor_emergency | non_emergency",
-  "urgency_score": 0.0,
+  "urgency_bucket": "life_threatening | emergency | requires_review | minor_emergency | non_emergency",
   "triage_flags": {
     "airway_compromise": false,
     "not_breathing": false,
@@ -262,27 +271,15 @@ The AI triage model MUST return a structured JSON object in exactly this format:
     "calling_for_help_weak_voice": false,
     "multiple_voices_or_bystander_reports_collapse": false,
     "background_fall_impact_sound": false,
-    "location_unverified": false,
-    "low_confidence_ai": false,
-    "conflicting_ai_outputs": false
+    "location_unverified": false
   },
-  "reasoning": "Plain-language explanation of why this bucket was assigned, referencing specific transcript phrases.",
-  "recommended_actions": ["call_patient_now", "recommend_call_995"],
+  "reasoning": "Plain-language explanation of why this bucket was assigned, referencing specific transcript phrases and audio signals.",
+  "recommended_actions": ["call_patient_now", "call_995"],
   "sbar": {
-    "situation": "Brief description of what the patient reported.",
-    "background": "Relevant patient history and context (if available).",
-    "assessment": "AI urgency assessment and confidence level.",
+    "situation": "Brief description of what the patient reported or what was detected.",
+    "background": "Relevant patient history, medical conditions, languages spoken, and context.",
+    "assessment": "AI urgency assessment referencing specific triage flags and signals.",
     "recommendation": "Specific next steps for the human operator."
   }
 }
 ```
-
-**Urgency score mapping:**
-| Bucket | Score Range |
-|---|---|
-| `life_threatening` | 0.9 – 1.0 |
-| `emergency` | 0.7 – 0.89 |
-| `unknown` | 0.5 – 0.69 |
-| `requires_review` | 0.4 – 0.59 |
-| `minor_emergency` | 0.2 – 0.39 |
-| `non_emergency` | 0.0 – 0.19 |
