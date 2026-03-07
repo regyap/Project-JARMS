@@ -41,13 +41,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# all the routes will be here
 
-# ── Routers ────────────────────────────────────────────────────────────────────
-app.include_router(audio.router,           prefix="/api/v1/audio",           tags=["Audio Ingestion"])
-app.include_router(triage.router,          prefix="/api/v1/triage",          tags=["LLM Triage"])
-app.include_router(cases.router,           prefix="/api/v1/cases",           tags=["Case Queue"])
-app.include_router(recommendations.router, prefix="/api/v1/recommendations", tags=["Recommendations"])
-app.include_router(helpers.router,         prefix="/api/v1/helpers",         tags=["Helper Services"])
 
 
 @app.get("/health", tags=["Health"])
