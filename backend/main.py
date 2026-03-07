@@ -12,17 +12,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from router.py import routes       # in-memory priority queue (swap for Redis)
 from core.settings import settings
+from routers.cases import router as cases_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup / shutdown lifecycle."""
-    print("🚀  Call Centre backend starting …")
-    # await case_queue.initialise()
+    print("🚀 Call Centre backend starting …")
     yield
-    print("🛑  Call Centre backend shutting down …")
-    # await case_queue.teardown()
+    print("🛑 Call Centre backend shutting down …")
 
 
 app = FastAPI(
@@ -39,8 +37,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# all the routes will be here
 
+app.include_router(cases_router, prefix="/cases", tags=["Cases"])
 
 
 @app.get("/health", tags=["Health"])

@@ -1,21 +1,15 @@
 from pydantic_settings import BaseSettings
+from pydantic import Field
 from typing import List
 
 
 class Settings(BaseSettings):
+    SUPABASE_URL: str
+    SUPABASE_SERVICE_ROLE_KEY: str
+    ALLOWED_ORIGINS: List[str] = Field(default_factory=lambda: ["*"])
 
-    APP_NAME: str = "LLM Call Centre"
-
-    ALLOWED_ORIGINS: List[str] = ["*"]
-
-    LLM_ENDPOINT: str = "http://localhost:8001/v1/chat/completions"
-    LLM_MODEL: str = "qwen3"
-
-    REDIS_URL: str = "redis://localhost:6379"
-
-    AUDIO_STORAGE: str = "./audio"
-
-    MAX_QUEUE_SIZE: int = 500
+    class Config:
+        env_file = ".env"
 
 
 settings = Settings()
