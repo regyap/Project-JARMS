@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # =========================
 # Environment files
 # =========================
@@ -61,3 +62,7 @@ htmlcov/
 # =========================
 node_modules/
 /backend/__pycache__
+=======
+/backend
+backend/.env
+>>>>>>> Stashed changes

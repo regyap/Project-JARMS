@@ -1,0 +1,15 @@
+PUREADIO TRANSCRIPTION RESULT
+Audio  : interviewcoolies.mp3
+Time   : 20260308_012609
+==================================================
+
+RAW ASR OUTPUT:
+讲了，哎，去表演过吼，哎哎，一百空话，老人机吼，哎，身体不好啊，不舒服。哦，是是是，哎，多多听啊。伊讲伊 LCT 哦。LCT，嗯，啥物叫 LCT？隆重听啊。啊，嗯，我做裸官二十年，不跳可以讲隆重听是 LCT。哎呦，高人讲我过去叫做 DPT。DPT，啥物意思？淡薄听啊。哎呀，东哥啊，他进来呀，啊，无啊，等下伊 KKK 就食了了。啥物 KKK？通大条啊。你啊，你啊，看这条，我看一下你 PTL 你唱的，啥物叫 PTL？我靠了。哇，我的 BTC 你搁要讲阿毛咧。啥物叫 BTC 啊？摩托车啦。哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，
+
+==================================================
+
+NATIVE:
+讲了，去表演过吼，一百空话，老人机吼，身体不好啊，不舒服。是是是，多多听啊。伊讲伊 LCT 哦。LCT，啥物叫 LCT？隆重听啊。我做裸官二十年，不跳可以讲隆重听是 LCT。高人讲我过去叫做 DPT。DPT，啥物意思？淡薄听啊。东哥啊，他进来呀，无啊，等下伊 KKK 就食了了。啥物 KKK？通大条啊。你啊，看这条，我看一下你 PTL 你唱的，啥物叫 PTL？我靠了。哇，我的 BTC 你搁要讲阿毛咧。啥物叫 BTC 啊？摩托车啦。
+
+ENGLISH:
+Talked, went to perform, a lot of nonsense, the old man's phone, not in good health, feeling unwell. Yes, yes, yes, listen more. He said he has LCT [whole body pain]. LCT, what is LCT? It means "serious listening." I've been a naked official for twenty years, and I can say that serious listening is LCT. The high person said I used to be called DPT. DPT, what does it mean? It means "light listening." Brother Dong, he came in, no, wait a moment, he will eat KKK soon. What is KKK? It means "big deal." You, look at this, let me see your PTL, what is PTL? Damn it. Wow, my BTC, you want to talk about Ah Mao. What is BTC? It means "motorcycle."

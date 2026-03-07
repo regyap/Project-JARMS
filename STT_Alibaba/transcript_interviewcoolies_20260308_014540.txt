@@ -1,0 +1,29 @@
+QWEN
+讲了，哎，去表演过吼，哎哎，一百空话，老人机吼，哎，身体不好啊，不舒服。哦，是是是，哎，多多听啊。伊讲伊 LCT 哦。LCT，嗯，啥物叫 LCT？隆重听啊。啊，嗯，我做裸官二十年，不跳可以讲隆重听是 LCT。哎呦，高人讲我过去叫做 DPT。DPT，啥物意思？淡薄听啊。哎呀，东哥啊，他进来呀，啊，无啊，等下伊 KKK 就食了了。啥物 KKK？通大条啊。你啊，你啊，看这条，我看一下你 PTL 你唱的，啥物叫 PTL？我靠了。哇，我的 BTC 你搁要讲阿毛咧。啥物叫 BTC 啊？摩托车啦。哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，哎呦，
+
+WHISPER
+重要 去旁邊那裡 一百多歲的老人家 身體不好 不舒服 是是是 哪裡痛 他說他LCT 什麼叫LCT 隆重痛 我做老公二十年 不曾聽過說隆重痛 是LCT 不要再聽了 我們在訓練的時候 有教我們過節叫做DPT DPT 什麼意思 擔保體 董哥快一點 不然等一下他 KKK就吃力了 什麼KKK 我看你 我等一下PTL 什麼叫PTL 我看你 VTC你還會說暗號 什麼叫VTC 沒讀書 PTL 哈囉
+
+CONSENSUS
+讲了，哎，去表演过吼，哎哎，一百空话，一百多岁的老人家吼，哎，身体不好啊，不舒服。哦，是是是，哎，多多听啊。伊讲伊 LCT 哦。LCT，嗯，啥物叫 LCT？隆重听啊。啊，嗯，我做裸官二十年，不跳可以讲隆重听是 LCT。哎呦，高人讲我过去叫做 DPT。DPT，啥物意思？淡薄听啊。哎呀，东哥啊，他进来呀，啊，无啊，等下伊 KKK 就食了了。啥物 KKK？通大条啊。你啊，你啊，看这条，我看一下你 PTL 你唱的，啥物叫 PTL？我靠了。哇，我的 BTC 你搁要讲阿毛咧。啥物叫 BTC 啊？摩托车啦。
+
+RECONSTRUCTION
+LANGUAGE_DETECTED: Hokkien (with some Mandarin and English mixed in)
+
+NATIVE_TRANSCRIPT:
+讲了，哎，去表演过吼，哎哎，一百空话，一百多岁的老人家吼，哎，身体不好啊，不舒服。哦，是是是，哎，多多听啊。伊讲伊 LCT 哦。LCT，嗯，啥物叫 LCT？隆重听啊。啊，嗯，我做裸官二十年，不跳可以讲隆重听是 LCT。哎呦，高人讲我过去叫做 DPT。DPT，啥物意思？淡薄听啊。哎呀，东哥啊，他进来呀，啊，无啊，等下伊 KKK 就食了了。啥物 KKK？通大条啊。你啊，你啊，看这条，我看一下你 PTL 你唱的，啥物叫 PTL？我靠了。哇，我的 BTC 你搁要讲阿毛咧。啥物叫 BTC 啊？摩托车啦。
+
+MANDARIN_INTERPRETATION:
+说了，哎，去表演过了，哎哎，全是废话，一百多岁的老人家，哎，身体不好啊，不舒服。哦，是是是，哎，多听听啊。他说他 LCT 呀。LCT，嗯，什么是 LCT？隆重听啊。啊，嗯，我做了裸官二十年，不得不说隆重听就是 LCT。哎呀，高人说我过去叫做 DPT。DPT，什么意思？淡薄听啊。哎呀，东哥啊，他进来了，啊，没有啊，等下他就 KKK 了。什么是 KKK？吃得多啊。你啊，你啊，看这个，我看看你 PTL 你唱的，什么是 PTL？我靠了。哇，我的 BTC 你要说阿毛啊。什么是 BTC 啊？摩托车啦。
+
+TRANSLATION
+ENGLISH_DIRECT:
+He talked, oh, he went to perform, oh, a lot of nonsense, an old man over a hundred years old, oh, his health is not good, he's uncomfortable. Oh, yes, yes, yes, oh, listen more. He said LCT. LCT, hmm, what's LCT? Listen carefully. Ah, hmm, I've been a naked official for twenty years, it can be said that listening carefully is LCT. Oh, the expert said I used to be called DPT. DPT, what does it mean? Listen lightly. Oh, Brother Dong, he came in, oh, no, wait, he will eat KKK soon. What's KKK? It's a big deal. You, you, look at this, let me see your PTL, what's PTL? Damn. Wow, my BTC, why are you talking about A Mao? What's BTC? It's a motorcycle.
+
+ENGLISH_VIA_CHINESE:
+他说了，哎，去表演过，哎哎，一堆废话，一百多岁的老人家，哎，身体不好啊，不舒服。哦，是是是，哎，多听点。他说他 LCT 哦。LCT，嗯，什么是 LCT？认真听啊。啊，嗯，我当裸官二十年，可以说认真听就是 LCT。哎呀，高人说过去我叫 DPT。DPT，什么意思？随便听听。哎呀，东哥啊，他进来了呀，啊，没有啊，等下他就吃 KKK 了。什么 KKK？大事啊。你啊，你啊，看这个，我看一下你的 PTL 你唱的，什么叫 PTL？真见鬼。哇，我的 BTC 你干嘛要说阿毛呢。什么叫 BTC 啊？摩托车。
+
+FINAL_ENGLISH:
+He said, oh, he went to perform, oh, a bunch of nonsense, an old man over a hundred years old, oh, his health is not good, he's uncomfortable. Oh, yes, yes, yes, oh, listen more. He said LCT. LCT, hmm, what is LCT? Listen carefully. Ah, hmm, I've been a naked official for twenty years, it can be said that listening carefully is LCT. Oh, the expert said I used to be called DPT. DPT, what does it mean? Listen casually. Oh, Brother Dong, he came in, oh, no, wait, he will eat KKK soon. What is KKK? It's a big deal. You, you, look at this, let me see your PTL, what is PTL? Damn. Wow, my BTC, why are you talking about A Mao? What is BTC? It's a motorcycle.
+
+CONFIDENCE: 85%
