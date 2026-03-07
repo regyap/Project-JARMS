@@ -113,3 +113,26 @@ h1, h2, h3, h4, h5, h6 {
 .animate-out.slide-out-to-right {
   animation: slideOutToRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* Mobile Panel Backdrop */
+@media (max-width: 1024px) {
+  .alert-detail-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

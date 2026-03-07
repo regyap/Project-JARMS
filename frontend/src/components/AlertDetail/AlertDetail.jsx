@@ -115,10 +115,12 @@ export default function AlertDetail({ alert, onClose }) {
 
         {/* AI Triage & Summary Section */}
         <section className="detail-section mb-6">
-          <h3 className="section-title mono flex items-center justify-between">
-            <span>AI TRIAGE & SUMMARY</span>
-            <span className="text-[10px] bg-[#10b981]/20 px-2 py-0.5 rounded text-[#10b981] border border-[#10b981]/50">AI Generated</span>
-          </h3>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 mb-4">
+            <h3 className="section-title mono border-b border-dashed border-[var(--panel-border)] pb-3 mb-0 flex-1">
+              <span>AI TRIAGE & SUMMARY</span>
+            </h3>
+            <span className="text-[10px] bg-[#10b981]/20 px-2 py-0.5 rounded text-[#10b981] border border-[#10b981]/50 w-fit">AI Generated</span>
+          </div>
 
           {/* Transcript Snippet */}
           {alert.transcript && (
@@ -206,10 +208,12 @@ export default function AlertDetail({ alert, onClose }) {
         {/* Beneficiary Profile Section */}
         {alert.beneficiary && (
           <section className="detail-section mb-4">
-            <h3 className="section-title mono flex items-center justify-between">
-              <span>BENEFICIARY PROFILE</span>
-              <span className="text-[10px] bg-[#333] px-2 py-0.5 rounded text-[var(--color-med)]">PAB DB Match</span>
-            </h3>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 mb-4">
+              <h3 className="section-title mono border-b border-dashed border-[var(--panel-border)] pb-3 mb-0 flex-1">
+                <span>BENEFICIARY PROFILE</span>
+              </h3>
+              <span className="text-[10px] bg-[#333] px-2 py-0.5 rounded text-[var(--color-med)] w-fit">PAB DB Match</span>
+            </div>
             
             <div className="bg-[#111] p-3 rounded-lg border border-[#333]">
               <div className="flex justify-between items-start mb-3">

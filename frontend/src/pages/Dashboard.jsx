@@ -132,10 +132,25 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content Area: Split dynamically based on selection */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Alert List Container (grows) - Click empty space to close panel */}
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile Backdrop - visible only on very small screens */}
+        {selectedAlertId && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => dispatch(closeDetail())}
+          />
+        )}
+
+        {/* Tablet+ Backdrop - semi-transparent overlay */}
+        {selectedAlertId && (
+          <div 
+            className="hidden md:block fixed inset-0 bg-black/20 z-40 pointer-events-none"
+          />
+        )}
+
+        {/* Alert List Container (always full width) - Click empty space to close panel */}
         <div
-          className={`flex flex-col ${selectedAlertId ? "w-full lg:w-[calc(100%-400px)] lg:border-r border-[var(--panel-border)]" : "w-full"} overflow-hidden transition-all duration-300`}
+          className="flex flex-col w-full overflow-hidden transition-all duration-300"
           onClick={(e) => {
             // Close panel only if clicking directly on this div (empty space), not on children
             if (e.target === e.currentTarget) {
@@ -150,9 +165,9 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Alert Detail Side Panel (fixed width on desktop, overlays/slides on mobile ideally) */}
+        {/* Alert Detail Side Panel - Overlays on top without pushing alert list */}
         {selectedAlertId && (
-          <div className="w-[400px] flex-none bg-[var(--panel-bg)] overflow-y-auto hidden lg:block border-l border-[var(--panel-border)] transition-all duration-500 ease-in-out transform origin-right animate-in slide-in-from-right">
+          <div className="fixed md:absolute inset-0 md:inset-y-0 md:right-0 md:w-[350px] lg:w-[500px] md:left-auto h-full flex-none bg-[var(--panel-bg)] overflow-y-auto border-l border-[var(--panel-border)] transition-all duration-500 ease-in-out transform origin-right animate-in slide-in-from-right z-50">
             <AlertDetail
               alert={selectedAlert}
               onClose={() => dispatch(closeDetail())}
