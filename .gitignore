@@ -60,3 +60,4 @@ htmlcov/
 # Node (if frontend exists)
 # =========================
 node_modules/
+/backend/__pycache__
