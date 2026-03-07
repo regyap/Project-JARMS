@@ -5,6 +5,7 @@
 .env.*
 */.env
 backend/.env
+<<<<<<< Updated upstream
 STT_Alibaba/.env
 
 # =========================
@@ -70,3 +71,5 @@ node_modules/
 # =========================
 /backend/
 /backend/__pycache__/
+=======
+>>>>>>> Stashed changes
