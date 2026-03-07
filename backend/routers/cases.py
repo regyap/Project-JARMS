@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import os
+import json
+import traceback
+import tempfile
+import subprocess
+
 from datetime import datetime, timezone
 from uuid import uuid4
-import traceback
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
@@ -14,12 +18,67 @@ router = APIRouter()
 AUDIO_BUCKET = os.getenv("SUPABASE_AUDIO_BUCKET", "pab_audio")
 
 
+def get_audio_duration_seconds(
+    audio_bytes: bytes, suffix: str = ".webm"
+) -> float | None:
+    """
+    Uses ffprobe to detect audio duration.
+    Returns None if duration cannot be determined.
+    """
+    temp_path = None
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(audio_bytes)
+            temp_path = tmp.name
+
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "json",
+                temp_path,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        data = json.loads(result.stdout)
+        duration = data.get("format", {}).get("duration")
+
+        if duration is None:
+            return None
+
+        return round(float(duration), 2)
+
+    except Exception:
+        return None
+
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+
+
 @router.get("/")
 async def list_cases():
     try:
         response = (
             supabase.table("cases")
             .select("*, pab_beneficiaries(*)")
+            .not_.is_("transcript_raw", None)
+            .not_.is_("sbar_json", None)
+            .not_.is_("triage_flags", None)
+            .not_.is_("recommended_actions", None)
+            .neq("triage_flags", "{}")
+            .neq("recommended_actions", "{}")
             .order("opened_at", desc=True)
             .execute()
         )
@@ -71,9 +130,16 @@ async def create_case_from_audio(
         if audio.filename and "." in audio.filename:
             file_ext = audio.filename.rsplit(".", 1)[-1].lower()
 
+        file_suffix = f".{file_ext}"
         storage_path = f"{button_id}/{case_id}/raw.{file_ext}"
 
-        # 4) Upload audio to Supabase Storage
+        # 4) Calculate duration before upload
+        audio_duration_seconds = get_audio_duration_seconds(
+            audio_bytes=audio_bytes,
+            suffix=file_suffix,
+        )
+
+        # 5) Upload audio to Supabase Storage
         supabase.storage.from_(AUDIO_BUCKET).upload(
             path=storage_path,
             file=audio_bytes,
@@ -83,7 +149,7 @@ async def create_case_from_audio(
             },
         )
 
-        # 5) Insert case row
+        # 6) Insert case row
         now_iso = datetime.now(timezone.utc).isoformat()
 
         case_payload = {
@@ -103,16 +169,16 @@ async def create_case_from_audio(
                 "assessment": "Awaiting AI transcription and audio analysis",
                 "recommendation": "Place into review queue",
             },
-            "triage_flags_json": {
-                "audio_received": True,
-                "low_confidence_ai": True,
-            },
-            "recommended_actions_json": {
-                "primary_action": "call_patient_now",
-                "secondary_actions": ["call_emergency_contact_now"],
-            },
+            "triage_flags": [
+                "audio_received",
+                "low_confidence_ai",
+            ],
+            "recommended_actions": [
+                "call_patient_now",
+                "inform_emergency_contact",
+            ],
             "audio_file_url": storage_path,
-            "audio_duration_seconds": None,
+            "audio_duration_seconds": audio_duration_seconds,
             "audio_uploaded_at": now_iso,
         }
 
@@ -133,6 +199,7 @@ async def create_case_from_audio(
                 "emergency_contact": beneficiary.get("emergency_contact"),
             },
         }
+
     except HTTPException:
         raise
     except Exception as e:
