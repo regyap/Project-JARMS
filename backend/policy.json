@@ -1,0 +1,64 @@
+{
+  "policy_name": "pab_ai_triage_v1",
+  "scope": {
+    "population": "elderly_residents_living_alone_in_rental_flats",
+    "input_mode": "pab_triggered_audio",
+    "operation_hours": "24x7",
+    "human_in_loop": true,
+    "low_confidence_default": "escalate"
+  },
+  "red_flag_audio_signals": [
+  "fall_impact_sound",
+  "distress_vocalisation",
+  "gasping_or_laboured_breathing",
+  "extended_silence_after_trigger"
+  ],
+  "urgency_buckets": [
+    "life_threatening",
+    "emergency",
+    "minor_emergency",
+    "non_emergency",
+    "requires_review"
+  ],
+  "queue_order": [
+    "life_threatening",
+    "emergency",
+    "requires_review",
+    "minor_emergency",
+    "non_emergency"
+  ],
+  "target_wait_seconds": {
+    "life_threatening": 0,
+    "emergency": 60,
+    "requires_review": 180,
+    "minor_emergency": 600,
+    "non_emergency": 1800
+  },
+  "recommended_primary_actions_by_bucket": {
+    "life_threatening": [
+      "call_patient_now",
+      "recommend_call_995",
+      "call_emergency_contact_now"
+    ],
+    "emergency": [
+      "call_patient_now",
+      "call_emergency_contact_now",
+      "recommend_call_995_if_no_contact_or_red_flag_worsens"
+    ],
+    "requires_review": [
+      "call_patient_now",
+      "operator_review_now"
+    ],
+    "minor_emergency": [
+      "call_patient_now",
+      "recommend_private_ambulance_1777_if_transport_needed",
+      "recommend_gp_or_polyclinic_if_stable"
+    ],
+    "non_emergency": [
+      "call_patient_now",
+      "recommend_gp_or_polyclinic"
+    ]
+    
+  }
+  
+}

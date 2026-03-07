@@ -13,6 +13,8 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import Response
 
 from core.supabase import supabase
+from services.triage.run_triage import run_pipeline_from_storage_path
+from services.triage.queue import sort_cases_for_queue
 
 router = APIRouter()
 
@@ -75,6 +77,10 @@ async def list_cases():
         response = (
             supabase.table("cases")
             .select("*, pab_beneficiaries(*)")
+            .not_.is_("transcript_raw", None)
+            .not_.is_("sbar_json", None)
+            .not_.is_("recommended_actions", None)
+            .neq("recommended_actions", "{}")
             .order("opened_at", desc=True)
             .execute()
         )
@@ -82,9 +88,11 @@ async def list_cases():
         items = []
 
         for row in response.data:
-            beneficiary = row.pop("pab_beneficiaries", {})
+            beneficiary = row.pop("pab_beneficiaries", {}) or {}
             merged = {**row, **beneficiary}
             items.append(merged)
+
+        items = sort_cases_for_queue(items)
 
         return {"items": items}
 
@@ -217,14 +225,14 @@ async def create_case_from_audio(
             },
         )
 
-        # 6) Insert case row
+        # 6) Insert initial case row
         now_iso = datetime.now(timezone.utc).isoformat()
 
         case_payload = {
             "case_id": case_id,
             "nric": beneficiary["nric"],
             "button_id": button_id,
-            "status": "new",
+            "status": "processing",
             "urgency_bucket": "requires_review",
             "queue_score": 60,
             "source": "pab_audio",
@@ -237,14 +245,8 @@ async def create_case_from_audio(
                 "assessment": "Awaiting AI transcription and audio analysis",
                 "recommendation": "Place into review queue",
             },
-            "triage_flags": [
-                "audio_received",
-                "low_confidence_ai",
-            ],
-            "recommended_actions": [
-                "call_patient_now",
-                "inform_emergency_contact",
-            ],
+            "triage_flags": [],
+            "recommended_actions": [],
             "audio_file_url": storage_path,
             "audio_duration_seconds": audio_duration_seconds,
             "audio_uploaded_at": now_iso,
@@ -253,19 +255,42 @@ async def create_case_from_audio(
         case_res = supabase.table("cases").insert(case_payload).execute()
         case_row = case_res.data[0] if case_res.data else None
 
+        # 7) Run triage pipeline immediately
+        triage_pipeline_result = None
+        triage_pipeline_error = None
+
+        try:
+            triage_pipeline_result = await run_pipeline_from_storage_path(storage_path)
+        except Exception as pipeline_err:
+            traceback.print_exc()
+            triage_pipeline_error = str(pipeline_err)
+
+        # 8) Re-fetch updated case after pipeline
+        refreshed_case_res = (
+            supabase.table("cases")
+            .select("*")
+            .eq("case_id", case_id)
+            .single()
+            .execute()
+        )
+        refreshed_case = refreshed_case_res.data
+
         return {
             "message": "Audio uploaded and case created",
-            "case": case_row,
+            "case": refreshed_case,
             "beneficiary": {
                 "nric": beneficiary["nric"],
                 "full_name": beneficiary["full_name"],
                 "primary_language": beneficiary.get("primary_language"),
+                "secondary_language": beneficiary.get("secondary_language"),
                 "address": beneficiary.get("address"),
                 "unit_number": beneficiary.get("unit_number"),
                 "phone_number": beneficiary.get("phone_number"),
                 "emergency_contact_name": beneficiary.get("emergency_contact_name"),
                 "emergency_contact": beneficiary.get("emergency_contact"),
             },
+            "triage_pipeline_result": triage_pipeline_result,
+            "triage_pipeline_error": triage_pipeline_error,
         }
 
     except HTTPException:
