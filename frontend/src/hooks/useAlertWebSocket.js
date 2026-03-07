@@ -6,9 +6,9 @@ import { supabase } from '../services/supabaseClient';
 const SIMULATED_KEYWORDS = ['emergency', 'வலிக்குது', 'help me', 'silence', 'background', '救命'];
 const SIMULATED_LANGUAGES = ['English', 'Tamil', 'Hokkien', 'Mandarin', 'Malay', 'Teochew'];
 const LOCATIONS = [
-  'Blk 123 #11-20, Bedok', 
-  'Blk 456 #02-14, Tampines', 
-  'Blk 789 #15-05, Yishun', 
+  'Blk 123 #11-20, Bedok',
+  'Blk 456 #02-14, Tampines',
+  'Blk 789 #15-05, Yishun',
   'Blk 234 #04-44, Jurong East'
 ];
 
@@ -21,11 +21,11 @@ export default function useAlertWebSocket() {
   const mockTimerRef = useRef(null);
 
   useEffect(() => {
-    
+
     // =========================================================================
     // [SECTION] REAL_LOGIC: Supabase Realtime & Backend API Integration
     // =========================================================================
-    
+
     /**
      * Authored for actual deployment.
      * This function hits your Backend REST API to fetch the authoritative list.
@@ -36,10 +36,10 @@ export default function useAlertWebSocket() {
         const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
         const response = await fetch(`${backendUrl}/cases/`);
         if (!response.ok) throw new Error('API fetch failed');
-        
+
         const data = await response.json();
         const apiData = data.items || [];
-        
+
         // Map backend cases to frontend alert structure using shared helper
         const mappedData = apiData.map(mapCase);
 
@@ -52,7 +52,7 @@ export default function useAlertWebSocket() {
     // If Supabase is connected, we use it strictly as an EVENT EMITTER.
     if (supabase) {
       console.log('[REAL_LOGIC] Supabase active. Initializing Event Emitter (Pub/Sub) on <cases>...');
-      
+
       // 1. Load initial data on mount
       fetchActiveCases();
 
@@ -61,16 +61,16 @@ export default function useAlertWebSocket() {
         .channel('public-cases-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, (payload) => {
           console.log('[REAL_LOGIC] Database change detected! Type:', payload.eventType);
-          
+
           // Whenever a change happens, we don't parse the payload.
           // We trigger our authoritative REST API re-fetch.
-          fetchActiveCases(); 
+          fetchActiveCases();
         })
         .subscribe();
-        
+
       return () => {
-         console.log('[REAL_LOGIC] Unsubscribing from Supabase changes.');
-         supabase.removeChannel(channel);
+        console.log('[REAL_LOGIC] Unsubscribing from Supabase changes.');
+        supabase.removeChannel(channel);
       }
     }
 
@@ -78,17 +78,17 @@ export default function useAlertWebSocket() {
     // =========================================================================
     // [SECTION] MOCK_LOGIC: Local Simulation Fallback
     // =========================================================================
-    
+
     if (!supabase) {
       console.log('[MOCK_LOGIC] Initializing Local Simulator (5-Tier Urgency Mode)...');
-      
+
       const BUCKETS = ['life_threatening', 'emergency', 'requires_review', 'minor_emergency', 'non_emergency'];
 
       const emitMockMessage = () => {
         const tier = BUCKETS[Math.floor(Math.random() * BUCKETS.length)];
         const isHighUrgency = tier === 'life_threatening' || tier === 'emergency';
         const queueScore = Math.floor(Math.random() * (isHighUrgency ? 30 : 50)) + (isHighUrgency ? 70 : 10);
-        
+
         const newAlert = {
           id: Math.floor(Math.random() * 900) + 100 + '',
           tier: tier,
@@ -109,7 +109,7 @@ export default function useAlertWebSocket() {
             falsePositiveAnalysis: {
               extraClicks: { passed: Math.random() > 0.1, desc: 'Signal verified' },
               backgroundNoise: { passed: Math.random() > 0.2, desc: 'Above threshold' },
-              silentAudio: { passed: tier !== 'life_threatening', desc: 'Audio check complete' } 
+              silentAudio: { passed: tier !== 'life_threatening', desc: 'Audio check complete' }
             }
           },
           beneficiary: {
@@ -126,13 +126,13 @@ export default function useAlertWebSocket() {
             primary_hospital: ['Singapore General Hospital', 'Tan Tock Seng Hospital', 'Changi General Hospital'][Math.floor(Math.random() * 3)]
           }
         };
-        
+
         dispatch(addAlert(newAlert));
-        
-        mockTimerRef.current = setTimeout(emitMockMessage, Math.random() * 15000 + 20000); 
+
+        mockTimerRef.current = setTimeout(emitMockMessage, Math.random() * 15000 + 20000);
       };
 
-      mockTimerRef.current = setTimeout(emitMockMessage, 3000); 
+      mockTimerRef.current = setTimeout(emitMockMessage, 3000);
 
       return () => {
         if (mockTimerRef.current) clearTimeout(mockTimerRef.current);

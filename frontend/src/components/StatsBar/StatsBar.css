@@ -12,11 +12,27 @@
   justify-content: center;
   position: relative;
   background-color: var(--panel-bg);
-  transition: background-color 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
 .stat-card:hover {
-  background-color: #17131d;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.stat-card.active {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.stat-card.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: currentColor;
+  opacity: 0.5;
 }
 
 .stat-card::before {
@@ -32,6 +48,11 @@
   font-size: 28px;
   font-weight: 600;
   margin-bottom: 8px;
+  transition: transform 0.2s;
+}
+
+.stat-card:active .stat-value {
+  transform: scale(0.95);
 }
 
 .stat-label {
@@ -72,8 +93,15 @@
 }
 
 .total-stat::before {
-  background-color: var(--color-active);
+  background-color: #2563eb; /* Primary Blue */
 }
 .total-stat .stat-value {
-  color: var(--color-active);
+  color: #2563eb;
+}
+
+.closed-stat::before {
+  background-color: #10b981; /* Success Green */
+}
+.closed-stat .stat-value {
+  color: #10b981;
 }

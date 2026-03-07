@@ -324,13 +324,11 @@ function ActionController({ alert }) {
   };
 
   const handleExecute = async () => {
-    // If actions are selected, we consider it "dispatched" (actions taken)
-    const nextStatus = selectedActions.length > 0 ? 'dispatched' : 'claimed';
-    
+    // Transition to dispatched immediately upon execution
     await dispatch(updateCaseBackend({ 
       caseId: alert.id, 
       updates: { 
-        status: nextStatus,
+        status: 'dispatched',
         assigned_operator_id: currentUser?.operator_id
       } 
     }));
@@ -382,24 +380,49 @@ function ActionController({ alert }) {
       </div>
 
       <div className="pt-6 space-y-3">
-        {status !== 'resolved' ? (
-          <>
-            <button 
-              onClick={handleExecute}
-              disabled={selectedActions.length === 0}
-              className={`w-full py-4 bg-white text-black font-bold mono tracking-widest rounded-xl transition-colors shadow-lg disabled:opacity-50 ${selectedActions.length > 0 ? 'hover:bg-[var(--color-active)] cursor-pointer' : 'cursor-default'}`}
-            >
-              {status === 'new' ? 'CLAIM & EXECUTE' : 'EXECUTE UPDATED PLAN'}
-            </button>
-            {status === 'dispatched' && (
+        {status === 'processing' ? (
+          <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl text-center">
+            <div className="text-blue-400 font-bold mono text-sm mb-1 uppercase tracking-widest flex items-center justify-center gap-2 animate-pulse">
+              AI TRIAGE IN PROGRESS...
+            </div>
+            <div className="text-[10px] text-[var(--text-secondary)] mono">Wait for analysis to complete.</div>
+          </div>
+        ) : status === 'queued' ? (
+          <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
+            <div className="text-amber-400 font-bold mono text-sm mb-1 uppercase tracking-widest flex items-center justify-center gap-2">
+              QUEUED FOR RECOMMENDATION
+            </div>
+            <div className="text-[10px] text-[var(--text-secondary)] mono">Waiting for system prioritize actions...</div>
+          </div>
+        ) : status === 'error' ? (
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-center">
+            <div className="text-red-400 font-bold mono text-sm mb-1 uppercase tracking-widest flex items-center justify-center gap-2">
+              TRIAGE PIPELINE ERROR
+            </div>
+            <div className="text-[10px] text-[var(--text-secondary)] mono">AI analysis failed. Please triage manually.</div>
+          </div>
+        ) : status !== 'resolved' ? (
+          <div className="space-y-3">
+            {(status === 'new' || status === 'claimed') && (
               <button 
-                onClick={handleResolve}
-                className="w-full py-2 bg-transparent border border-white/20 text-[var(--text-secondary)] hover:text-white hover:border-white transition-all text-xs mono rounded-lg cursor-pointer"
+                onClick={handleExecute}
+                disabled={selectedActions.length === 0}
+                className={`w-full py-4 bg-white text-black font-bold mono tracking-widest rounded-xl transition-colors shadow-lg disabled:opacity-50 ${selectedActions.length > 0 ? 'hover:bg-[var(--color-active)] cursor-pointer' : 'cursor-default'}`}
               >
-                MARK AS RESOLVED / CLOSED
+                {status === 'new' ? 'CLAIM & EXECUTE' : 'EXECUTE PLAN'}
               </button>
             )}
-          </>
+            
+            {(status === 'dispatched' || status === 'claimed') && (
+              <button 
+                onClick={handleResolve}
+                className={`w-full py-2 bg-transparent border border-white/20 text-[var(--text-secondary)] hover:text-white hover:border-white transition-all text-xs mono rounded-lg cursor-pointer ${status === 'claimed' ? 'opacity-50' : ''}`}
+                disabled={status === 'claimed'}
+              >
+                {status === 'claimed' ? 'COMPLETE EXECUTION TO RESOLVE' : 'MARK AS RESOLVED / CLOSED'}
+              </button>
+            )}
+          </div>
         ) : (
           <div className="p-4 bg-[#10b981]/10 border border-[#10b981]/30 rounded-xl text-center">
             <div className="text-[#10b981] font-bold mono text-sm mb-1 uppercase tracking-widest flex items-center justify-center gap-2">

@@ -1,12 +1,36 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+// --- Session Persistence Helpers ---
+const SESSION_KEY = 'jarms_operator_session';
+
+const loadSession = () => {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveSession = (user) => {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+  } catch { /* ignore */ }
+};
+
+const clearSession = () => {
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch { /* ignore */ }
+};
+
 // Helper to unify mapping from backend schema to frontend structure
 export const mapCase = (c) => ({
   id: c.case_id || c.id,
   tier: c.urgency_bucket || 'requires_review',
   source: c.source === 'pab_audio' ? 'audio' : 'btn',
   location: c.address ? `${c.address} ${c.unit_number || ''}`.trim() : 'Unknown Location',
-  queue_score: c.queue_score || 0,
+  queue_score: Number(c.live_queue_score || c.queue_score || 0),
   opened_at: c.opened_at || c.created_at,
   closed_at: c.closed_at,
   actionState: c.status || 'new',
@@ -71,14 +95,16 @@ const alertsSlice = createSlice({
     items: [],
     selectedAlertId: null,
     status: 'idle', // idle, loading, succeeded, failed
-    currentUser: null, // Start with null for login
+    currentUser: loadSession(), // Restore from localStorage on app start
   },
   reducers: {
     setOperator: (state, action) => {
       state.currentUser = action.payload;
+      saveSession(action.payload); // Persist session
     },
     logout: (state) => {
       state.currentUser = null;
+      clearSession(); // Clear persisted session
     },
     addAlert: (state, action) => {
       const exists = state.items.some(item => item.id === action.payload.id);

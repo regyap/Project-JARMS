@@ -83,10 +83,11 @@
 }
 
 .alert-row.resolved {
-  opacity: 0.4;
-  filter: grayscale(0.7);
-  background-color: rgba(255, 255, 255, 0.02) !important;
-  border-left: 2px solid #444 !important;
+  opacity: 0.3;
+  filter: grayscale(1);
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border-left: 2px solid #333 !important;
+  pointer-events: none; /* Disable clicking/hovering on resolved rows */
 }
 
 .alert-row.resolved .pulse-dot {
@@ -288,56 +289,85 @@
   align-items: flex-end;
   gap: 6px;
 }
-.btn-action {
-  background-color: transparent;
-  padding: 8px 12px;
+.status-tag, .btn-action {
+  padding: 6px 12px;
   border-radius: 4px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.2s;
   width: 110px;
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-mono);
 }
-.btn-action:disabled {
+
+/* Status Tags: Hollow Pill Style */
+.status-tag {
   cursor: default;
+  border-radius: 20px; /* Pill */
+  background-color: transparent !important;
+  border-width: 1px;
+  border-style: solid;
+  padding: 4px 10px;
+  height: 24px;
+}
+
+/* Action Buttons: Solid Block Style */
+.btn-action {
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 32px;
+  border: 1px solid transparent;
+}
+
+.btn-action:disabled {
+  cursor: not-allowed;
   pointer-events: none;
   opacity: 0.5;
 }
+
 .state-new {
-  color: var(--color-med);
-  border: 1px solid var(--color-med);
+  color: white;
+  background-color: #2563eb; /* Strong Blue */
 }
 .state-new:hover {
-  background-color: var(--color-med-dim);
+  background-color: #1d4ed8;
 }
-.state-claimed {
+
+/* Status Tag Colors (Desaturated borders/text) */
+.status-tag.state-processing {
+  color: #fbbf24;
+  border-color: #fbbf24;
+}
+
+.status-tag.state-queued {
+  color: #f59e0b;
+  border-color: #f59e0b;
+}
+
+.status-tag.state-error {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.btn-action.state-claimed {
   color: white;
-  background-color: #a855f7;
-  border: 1px solid transparent;
+  background-color: #7c3aed; /* Purple */
 }
-.state-claimed:hover {
-  background-color: #9333ea;
-}
-.state-dispatched {
+
+.btn-action.state-dispatched {
   color: white;
-  background-color: var(--color-urgent);
-  border: 1px solid transparent;
+  background-color: #dc2626; /* Red */
 }
-.state-dispatched:hover {
-  background-color: #dc2626;
+.btn-action.state-dispatched:hover {
+  background-color: #b91c1c;
 }
-.state-resolved {
+
+.btn-action.state-resolved {
   color: white;
-  background-color: #10b981;
-  border: 1px solid transparent;
-}
-.state-resolved:hover {
-  background-color: #059669;
+  background-color: #059669; /* Green */
 }
 
 .action-dots {

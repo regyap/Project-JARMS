@@ -38,13 +38,13 @@ export default function AlertList({ alerts, selectedAlertId, onSelectAlert }) {
   return (
     <div className="alert-list-container">
       <div className="alert-list-header mono">
-        <div>TIER</div>
-        <div>SOURCE</div>
-        <div>KEYWORDS | LANGUAGES</div>
-        <div>LOCATION</div>
-        <div>URGENCY %</div>
-        <div>TIME</div>
-        <div style={{ textAlign: 'right' }}>ACTION</div>
+        <div className="cell-tier">TIER</div>
+        <div className="cell-source flex-center">SOURCE</div>
+        <div className="cell-keywords">KEYWORDS | LANGUAGES</div>
+        <div className="cell-location">LOCATION</div>
+        <div className="cell-pitch flex-center">URGENCY %</div>
+        <div className="cell-time flex-center">TIME</div>
+        <div className="cell-action flex-center">ACTION</div>
       </div>
 
       <div className="alert-list-body">
@@ -109,35 +109,45 @@ export default function AlertList({ alerts, selectedAlertId, onSelectAlert }) {
               {/* Action Column */}
               <div className="cell-action flex-center">
                 <div className="action-wrapper">
-                  <button 
-                    className={`btn-action mono state-${alert.actionState || 'new'}`}
-                    disabled={alert.actionState === 'resolved' || alert.actionState === 'claimed'}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (alert.actionState === 'new' || !alert.actionState) {
-                        dispatch(updateCaseBackend({ 
-                          caseId: alert.id, 
-                          updates: { status: 'claimed', assigned_operator_id: currentUser?.operator_id } 
-                        }));
-                      } else if (alert.actionState === 'dispatched') {
-                        dispatch(updateCaseBackend({ 
-                          caseId: alert.id, 
-                          updates: { status: 'resolved' } 
-                        }));
-                      }
-                    }}
-                  >
-                    {alert.actionState === 'new' || !alert.actionState ? 'CLAIM' 
-                     : alert.actionState === 'claimed' ? 'PENDING EXEC'
-                     : alert.actionState === 'dispatched' ? 'RESOLVE'
-                     : 'CLOSED'}
-                  </button>
-                  <div className="action-dots">
-                    <span className={`dot ${alert.actionState === 'new' || !alert.actionState ? 'dot-active' : ''}`}></span>
-                    <span className={`dot ${alert.actionState === 'claimed' ? 'dot-active' : ''}`}></span>
-                    <span className={`dot ${alert.actionState === 'dispatched' ? 'dot-active' : ''}`}></span>
-                    <span className={`dot ${alert.actionState === 'resolved' ? 'dot-active' : ''}`}></span>
-                  </div>
+                  {['processing', 'queued', 'error'].includes(alert.actionState) ? (
+                    <div className={`status-tag state-${alert.actionState}`}>
+                      {alert.actionState === 'processing' ? 'AI TRIAGE...'
+                       : alert.actionState === 'queued' ? 'QUEUED'
+                       : 'AI ERROR'}
+                    </div>
+                  ) : (
+                    <button 
+                      className={`btn-action mono state-${alert.actionState || 'new'}`}
+                      disabled={alert.actionState === 'resolved' || alert.actionState === 'claimed'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (alert.actionState === 'new' || !alert.actionState) {
+                          dispatch(updateCaseBackend({ 
+                            caseId: alert.id, 
+                            updates: { status: 'claimed', assigned_operator_id: currentUser?.operator_id } 
+                          }));
+                        } else if (alert.actionState === 'dispatched') {
+                          dispatch(updateCaseBackend({ 
+                            caseId: alert.id, 
+                            updates: { status: 'resolved' } 
+                          }));
+                        }
+                      }}
+                    >
+                      {alert.actionState === 'new' || !alert.actionState ? 'CLAIM' 
+                       : alert.actionState === 'claimed' ? 'CLAIMED'
+                       : alert.actionState === 'dispatched' ? 'RESOLVE'
+                       : 'CLOSED'}
+                    </button>
+                  )}
+                  {!['processing', 'queued', 'error'].includes(alert.actionState) && (
+                    <div className="action-dots">
+                      <span className={`dot ${alert.actionState === 'new' || !alert.actionState ? 'dot-active' : ''}`}></span>
+                      <span className={`dot ${alert.actionState === 'claimed' ? 'dot-active' : ''}`}></span>
+                      <span className={`dot ${alert.actionState === 'dispatched' ? 'dot-active' : ''}`}></span>
+                      <span className={`dot ${alert.actionState === 'resolved' ? 'dot-active' : ''}`}></span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
