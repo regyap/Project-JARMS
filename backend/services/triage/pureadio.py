@@ -1,121 +1,153 @@
 """
-pureadio.py — Native Multimodal Audio Translation (File API Method)
-================================================
-Project JARMS | Google Gemini API
+pureadio.py — Whisper + GPT-4o Transcription Pipeline
+=======================================================
+Project JARMS | OpenAI
 
-Purpose:
-  Processes a raw audio file directly using Gemini 2.5 Flash via the File API.
-  This avoids massive inline Base64 payloads (which cause network hangs)
-  and completely removes the need for local FFmpeg installation.
+Pipeline:
+  STEP 1 — Whisper Cloud  : Audio → Raw ASR Transcript
+  STEP 2 — GPT-4o         : Phonetic Dialect Correction & Dual Translation
+
+Designed to handle Singaporean elderly callers speaking mixed Hokkien,
+Mandarin, and English — including phonetic acronym puns for ailments.
+
+Returns:
+  {
+    "raw_transcript": str,   # raw Whisper output
+    "translation":    str,   # cleaned English translation
+    "confidence":     float  # currently fixed at 0.8
+  }
 """
 
 import os
-import datetime
-from google import genai
+import time
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 
 # ------------------------------------------------------------------
 # CONFIG
 # ------------------------------------------------------------------
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-AUDIO_FILE = os.getenv("AUDIO_FILE", "interviewcoolies.mp3")
-
-# Using Flash for speed and free-tier access
-MODEL_NAME = "gemini-2.5-flash"
-
-client = genai.Client(api_key=GEMINI_API_KEY)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # ------------------------------------------------------------------
-# GLOSSARY FOR REFINEMENT
+# SYSTEM PROMPT  (Whisper → GPT-4o cleanup)
 # ------------------------------------------------------------------
-HOKKIEN_GLOSSARY = """
-HOKKIEN / MINNAN GLOSSARY (Phonetic Sounds -> Correct Characters):
-- "LCT" -> 拢总痛 (Everything hurts / Whole body aches)
-- "DPT" -> 淡薄痛 (Hurts a little bit)
-- "PTL" -> 破头颅 (Splitting headache)
-- "Lau jio" / "Liao jio" -> 救命 (Help)
-- "Tiam" / "Thiam" -> 痛 (Pain / Sore / Hurt)
-- "Doh" / "Deh" -> 在哪里 (Where)
-- "Boe" -> 不能 / 还没有 (Cannot / Not yet)
-- "Tao ka" -> 头痛 (Headache)
-- "Ka chiak" -> 背部 (Back)
-- "Gua" -> 我 (I)
-- "Le" -> 你 (You)
-- "Lim" -> 喝 (Drink)
-- "Jia" -> 吃 (Eat)
+REFINE_SYSTEM = """
+You are an expert linguist analysing mixed Hokkien, Mandarin, and English speech
+transcripts from an ASR tool used in a Singapore elderly care emergency service.
+
+Your Tasks:
+1. Clean   — Remove mechanical ASR hallucination loops at the end of the text.
+2. Reconstruct — Correct ASR phonetic mistakes (e.g., hallucinated characters
+   based on dialect sounds). Preserve actual dialect words in their proper
+   characters. Do NOT invent phrases.
+3. Translate — Translate the reconstructed text into highly accurate English.
+   If the speaker used an acronym for a dialect phrase, include the translated
+   meaning in brackets (e.g., "LCT [whole body pain]").
+
+Provide the final output in EXACTLY this format:
+
+NATIVE_TRANSCRIPT:
+[Insert the cleaned, phonetically corrected native text here]
+
+ENGLISH_TRANSLATION:
+[Insert the translated English text here]
 """
 
+
 # ------------------------------------------------------------------
-# CORE FUNCTION
+# STEP 1 — WHISPER ASR
 # ------------------------------------------------------------------
 
+def _transcribe_whisper(audio_path: str, client: OpenAI) -> str:
+    print("[pureadio] STEP 1 — Whisper Cloud ASR")
+    with open(audio_path, "rb") as audio_file:
+        response = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            timeout=120,
+        )
+    text = response.text.strip()
+    print(f"[pureadio] Whisper raw output ({len(text)} chars): {text[:120]}...")
+    return text
+
+
+# ------------------------------------------------------------------
+# STEP 2 — DIALECT RECONSTRUCTION & TRANSLATION
+# ------------------------------------------------------------------
+
+def _refine_and_translate(raw_text: str, client: OpenAI) -> str:
+    print("[pureadio] STEP 2 — Dialect Reconstruction & Translation (GPT-4o)")
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        temperature=0.1,
+        messages=[
+            {"role": "system", "content": REFINE_SYSTEM},
+            {"role": "user", "content": f"RAW TRANSCRIPT:\n{raw_text}"},
+        ],
+    )
+    result = response.choices[0].message.content.strip()
+    print(f"[pureadio] GPT-4o output: {result[:200]}...")
+    return result
+
+
+# ------------------------------------------------------------------
+# MAIN PUBLIC FUNCTION
+# ------------------------------------------------------------------
 
 def run(audio_path: str) -> dict:
-    print(f"[pureadio] Uploading audio securely via File API: {audio_path}")
+    """
+    Transcribe audio and return structured result for run_triage.py.
 
-    # 1. Upload the file cleanly (avoids the Base64 payload hang)
-    try:
-        uploaded_audio = client.files.upload(file=audio_path)
-        print(f"[pureadio] Upload successful. File URI: {uploaded_audio.uri}")
-    except Exception as e:
-        print(f"[pureadio] Failed to upload file to Gemini: {e}")
-        return {}
+    Args:
+        audio_path: absolute path to the (temp) audio file
 
-    # 2. Call the Gemini API
-    print(f"[pureadio] Processing audio with {MODEL_NAME}...")
+    Returns:
+        {
+            "raw_transcript": str,
+            "translation":    str,
+            "confidence":     float,
+        }
+    """
+    if not os.path.exists(audio_path):
+        raise FileNotFoundError(f"[pureadio] Audio file not found: {audio_path}")
 
-    prompt = f"""
-You are an expert in Singaporean Chinese dialects (Hokkien, Minnan, Teochew) and medical triage.
-Listen to the audio. The speaker uses heavily accented dialect mixed with English acronyms (which might be phonetic puns for ailments).
+    if not OPENAI_API_KEY:
+        raise ValueError("[pureadio] OPENAI_API_KEY is missing — add it to your .env")
 
-GLOSSARY TO HELP YOU DECODE:
-{HOKKIEN_GLOSSARY}
+    client = OpenAI(api_key=OPENAI_API_KEY)
 
-TASK:
-Translate the audio directly into clear, high-precision English, capturing the medical urgency or the specific ailments described. 
-Do NOT output the raw or cleaned Chinese transcript. Output ONLY the English translation.
-"""
+    start = time.time()
+    print("\n==============================")
+    print("PUREADIO WHISPER PIPELINE")
+    print("==============================")
 
-    try:
-        response = client.models.generate_content(
-            model=MODEL_NAME,
-            contents=[uploaded_audio, prompt],
-            config={"temperature": 0.1},
-        )
-        translation_output = response.text
-        print(f"[pureadio] Translation Complete!\n")
-    except Exception as e:
-        print(f"[pureadio] API generation failed: {e}")
-        return {}
-    finally:
-        # 3. Clean up: Delete the file from Google's servers immediately
-        try:
-            client.files.delete(name=uploaded_audio.name)
-            print("[pureadio] Cloud file cleaned up.")
-        except Exception:
-            pass
+    # Execute pipeline
+    whisper_text = _transcribe_whisper(audio_path, client)
+    final_result = _refine_and_translate(whisper_text, client)
 
-    # 4. Save output to file
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_name = os.path.splitext(os.path.basename(audio_path))[0]
-    output_filename = f"transcript_{base_name}_{timestamp}.txt"
+    # Parse outputs safely
+    native_text = ""
+    english_text = ""
 
-    file_content = f"""Audio File : {audio_path}
-Timestamp  : {timestamp}
-{'='*60}
+    if "NATIVE_TRANSCRIPT:" in final_result and "ENGLISH_TRANSLATION:" in final_result:
+        parts = final_result.split("ENGLISH_TRANSLATION:")
+        native_text = parts[0].replace("NATIVE_TRANSCRIPT:", "").strip()
+        english_text = parts[1].strip()
+    else:
+        # Fallback: model ignored format
+        native_text = whisper_text
+        english_text = final_result
 
-REFINED ENGLISH TRANSLATION:
-{translation_output}
-"""
+    elapsed = time.time() - start
+    print(f"[pureadio] Done in {elapsed:.2f}s")
 
-    with open(output_filename, "w", encoding="utf-8") as f:
-        f.write(file_content)
-
-    print(f"[pureadio] Output saved to: {output_filename}")
-
-    return {"translation": translation_output, "output_filename": output_filename}
+    return {
+        "raw_transcript": native_text or whisper_text,
+        "translation": english_text,
+        "confidence": 0.8,
+    }
 
 
 # ------------------------------------------------------------------
@@ -123,11 +155,12 @@ REFINED ENGLISH TRANSLATION:
 # ------------------------------------------------------------------
 
 if __name__ == "__main__":
-    result = run(AUDIO_FILE)
-    if result:
-        print("\n" + "=" * 60)
-        print("  PUREADIO RESULT")
-        print("=" * 60)
-        print(f"  Output file  : {result['output_filename']}")
-        print(f"  Translation:\n  {result['translation'][:300]}...")
-        print("=" * 60)
+    import os
+    audio_file = os.getenv("AUDIO_FILE", "interviewcoolies.mp3")
+    result = run(audio_file)
+    print("\n==============================")
+    print("PUREADIO RESULT")
+    print("==============================")
+    print(f"Raw Transcript : {result['raw_transcript'][:200]}")
+    print(f"Translation    : {result['translation'][:200]}")
+    print(f"Confidence     : {result['confidence']}")

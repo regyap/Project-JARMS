@@ -1,0 +1,44 @@
+{
+  "scenario_id": "elderly_toilet_fall_001",
+  "language_target": "Southern Min / Hokkien-like",
+  "setting": {
+    "location": "small home bathroom / toilet",
+    "time_of_day": "early morning",
+    "environment": [
+      "hard tiled floor",
+      "echo from toilet walls",
+      "slight dripping water sound",
+      "labored breathing",
+      "occasional groaning"
+    ]
+  },
+  "person": {
+    "age_group": "elderly",
+    "gender_presentation": "female",
+    "mobility_state": "unable to stand after fall",
+    "mental_state": "scared, in pain, calling for help"
+  },
+  "event": {
+    "summary": "An elderly person has slipped and fallen in the toilet. She is conscious, distressed, unable to get up, and repeatedly calls for help.",
+    "mechanism": "slipped on wet bathroom floor while trying to turn",
+    "urgency": "high",
+    "distress_level": 8.5
+  },
+  "pain_report": {
+    "primary_pain_points": [
+      "lower back",
+      "right hip",
+      "right knee"
+    ],
+    "secondary_symptoms": [
+      "dizziness",
+      "fear",
+      "short strained breaths"
+    ]
+  },
+  "script": {
+    "style_note": "Short, breathy, distressed phrases. Suitable for TTS emergency-fall simulation.",
+    "text_hokkien": "救命啊！有人咧無？\n我佇便所跋倒去矣，起袂來啊！\n我的腰脊真痛，正爿髖骨嘛真痛，右跤膝頭無法度出力。\n我頭有小可暈，真驚，真艱苦。\n拜託你，緊來救我！幫我叫人，幫我叫救護車！\n啊……真痛……我起袂來……救命啊……",
+    "english_gloss": "Help! Is anyone there? I fell in the toilet and I can't get up. My lower back hurts badly, my right hip hurts, and my right knee cannot bear weight. I feel a little dizzy. I am scared and suffering. Please come help me. Call someone. Call an ambulance."
+  }
+}

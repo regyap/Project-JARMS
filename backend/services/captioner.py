@@ -27,7 +27,7 @@ DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
 AUDIO_FILE = os.getenv("AUDIO_FILE", "interviewcoolies.mp3")
 
 CAPTION_MODEL = "qwen3-omni-flash"
-CAPTION_MODEL = "qwen3-omni-30b-a3b-captioner"
+#CAPTION_MODEL = "qwen3-omni-30b-a3b-captioner"
 
 
 client = OpenAI(

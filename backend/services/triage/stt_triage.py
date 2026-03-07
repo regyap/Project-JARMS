@@ -1,10 +1,12 @@
 import json
 import os
 import re
+from pathlib import Path
+from typing import Optional
 
 from openai import OpenAI
-from supabase import create_client
 from dotenv import load_dotenv
+from core.supabase import supabase as _supabase_client
 
 load_dotenv()
 
@@ -20,7 +22,8 @@ USER_ID = int(os.getenv("USER_ID", "1"))
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
 
 TRIAGE_MODEL         = "qwen3-235b-a22b"
-TRIAGE_PROTOCOL_FILE = "triage_protocol.md"
+# Always resolve the protocol relative to this module's directory
+TRIAGE_PROTOCOL_FILE = str(Path(__file__).parent / "triage_protocol.md")
 
 # -----------------------------
 # CLIENT
@@ -58,9 +61,8 @@ def load_triage_protocol(filepath: str = TRIAGE_PROTOCOL_FILE) -> str:
 
 def get_user_language(user_id: int) -> str:
     try:
-        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
         data = (
-            sb.table("users")
+            _supabase_client.table("users")
             .select("preferred_language")
             .eq("id", user_id)
             .execute()
@@ -77,7 +79,7 @@ def get_user_language(user_id: int) -> str:
 # LLM Triage
 # -----------------------------
 
-def run_triage(transcript: str, stt_confidence: float, protocol: str, situation_eval: dict = None, caption: dict = None) -> dict:
+def run_triage(transcript: str, stt_confidence: float, protocol: str, situation_eval: Optional[dict] = None, caption: Optional[dict] = None) -> dict:
     """Run triage analysis using qwen3-235b-a22b."""
     transcript = transcript or "NO_SPEECH_DETECTED"
     silence_note = ""
@@ -164,14 +166,14 @@ TRANSCRIPT:
             "pab_flags": ["triage_failure"]
         }
 
-def save_to_supabase(user_id: int, audio_file: str, stt_result: dict, triage_result: dict, situation_eval: dict = None, caption: dict = None):
+def save_to_supabase(user_id: int, audio_file: str, stt_result: dict, triage_result: dict, situation_eval: Optional[dict] = None, caption: Optional[dict] = None):
     if DRY_RUN:
         print("[DB] Dry run enabled. Skipping Supabase write.")
         return
     try:
-        sb    = create_client(SUPABASE_URL, SUPABASE_KEY)
         flags = triage_result.get("pab_flags") or []
-        if not isinstance(flags, list): flags = [str(flags)]
+        if not isinstance(flags, list):
+            flags = [str(flags)]
         if stt_result.get("silence_detected"):
             flags.append("silence_detected")
 
@@ -186,9 +188,9 @@ def save_to_supabase(user_id: int, audio_file: str, stt_result: dict, triage_res
             "pab_flags":          list(set(flags)),
             "language_detected":  stt_result.get("language_detected"),
             "situation_eval":     situation_eval,
-            "caption_eval":       caption
+            "caption_eval":       caption,
         }
-        sb.table("triage_history").insert(payload).execute()
+        _supabase_client.table("triage_history").insert(payload).execute()
         print("[DB] Result saved to triage_history.")
     except Exception as e:
         print(f"[DB] Error saving to Supabase: {e}")
