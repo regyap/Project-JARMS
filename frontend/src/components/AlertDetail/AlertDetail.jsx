@@ -428,13 +428,12 @@ function ActionController({ alert }) {
               </button>
             )}
             
-            {(status === 'dispatched' || status === 'claimed') && (
+            {(status === 'dispatched') && (
               <button 
                 onClick={handleResolve}
-                className={`w-full py-3 bg-[#10b981] text-black font-bold mono tracking-widest rounded-lg hover:bg-[#0ea870] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)] text-sm cursor-pointer ${status === 'claimed' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={status === 'claimed'}
+                className={`w-full py-3 bg-[#10b981] text-black font-bold mono tracking-widest rounded-lg hover:bg-[#0ea870] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)] text-sm cursor-pointer`}
               >
-                {status === 'claimed' ? 'COMPLETE EXECUTION TO RESOLVE' : 'MARK AS RESOLVED / CLOSED'}
+                MARK AS RESOLVED / CLOSED
               </button>
             )}
           </div>

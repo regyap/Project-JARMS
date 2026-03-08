@@ -8,7 +8,7 @@
 
 .alert-list-header {
   display: grid;
-  grid-template-columns: 160px 130px 3.2fr 2.3fr 100px 85px 140px;
+  grid-template-columns: 220px 250px 2fr 2fr 130px 120px 170px;
   padding: 16px 24px;
   font-size: 11px;
   color: var(--text-secondary);
@@ -29,7 +29,7 @@
 /* Alert Row */
 .alert-row {
   display: grid;
-  grid-template-columns: 160px 130px 3.2fr 2.3fr 100px 85px 140px;
+  grid-template-columns: 220px 250px 2fr 2fr 130px 120px 170px;
   padding: 16px 24px;
   border-bottom: 1px solid var(--panel-border);
   cursor: pointer;
@@ -203,9 +203,10 @@
 .icon-btn { color: var(--color-low); }
 
 .source-text {
-  font-size: 10px;
-  color: var(--text-secondary);
-  text-align: center;
+  font-size: 13px;
+  color: var(--text-primary);
+  text-align: left;
+  font-weight: 500;
 }
 
 .duration-text {
@@ -213,6 +214,7 @@
   color: var(--color-med);
   opacity: 0.8;
   margin-top: -2px;
+  display: none;
 }
 
 /* Pills */
@@ -275,9 +277,10 @@
 
 /* Pitch */
 .pitch-value {
-  font-size: 10px;
-  color: var(--text-secondary);
+  font-size: 13px;
+  color: var(--text-primary);
   text-align: center;
+  font-weight: 500;
 }
 .pitch-bar-container {
   width: 100%;
@@ -304,8 +307,9 @@
 
 /* Time */
 .time-text {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 /* Action Button */

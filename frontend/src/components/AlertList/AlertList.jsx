@@ -39,7 +39,7 @@ export default function AlertList({ alerts, selectedAlertId, onSelectAlert }) {
     <div className="alert-list-container">
       <div className="alert-list-header mono">
         <div className="cell-tier">TIER</div>
-        <div className="cell-source flex-center">SOURCE</div>
+        <div className="cell-source flex-center">BUTTON LOC</div>
         <div className="cell-keywords">BENEFICIARY</div>
         <div className="cell-location">LOCATION</div>
         <div className="cell-pitch flex-center">URGENCY %</div>
@@ -67,10 +67,11 @@ export default function AlertList({ alerts, selectedAlertId, onSelectAlert }) {
                 </span>
               </div>
 
-              {/* Source Column */}
+              {/* Source Column - Button Location */}
               <div className="cell-source flex-center-col">
-                {getSourceIcon(alert.source)}
-                <span className="source-text">{alert.source === 'btn' ? 'PAB Button' : 'Voice/Audio'}</span>
+                <span className="source-text">
+                  {alert.button_location || 'Unknown Location'}
+                </span>
                 {alert.source === 'audio' && (
                   <span className="duration-text mono">
                     [{isFinite(alert.audio_duration_seconds) && alert.audio_duration_seconds > 0 

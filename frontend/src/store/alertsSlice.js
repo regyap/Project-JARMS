@@ -30,7 +30,7 @@ export const mapCase = (c) => ({
   tier: c.urgency_bucket || 'requires_review',
   source: c.source === 'pab_audio' ? 'audio' : 'btn',
   location: c.address ? `${c.address} ${c.unit_number || ''}`.trim() : 'Unknown Location',
-  queue_score: Number(c.live_queue_score || c.queue_score || 0),
+  queue_score: Number(c.queue_score || 0),
   opened_at: c.opened_at || c.created_at,
   closed_at: c.closed_at,
   actionState: c.status || 'new',
