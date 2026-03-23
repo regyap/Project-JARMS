@@ -457,3 +457,4 @@ JARMS was developed during **HackOMania 2026** within 24 hours to explore how AI
 | Jun Kai       | Triage, Database & API                |
 | Mervyn Chiong | Training AI Models                    |
 | Sean Young    | UIUX, State Management & Live updates |
+| Regine Yap    | UIUX Designer, Project Manager        |
